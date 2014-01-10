@@ -1,0 +1,22 @@
+{
+  cryptotrader:
+    api_key: "demo"
+
+  mtgox:
+    key: ""
+    secret: ""
+
+  bitstamp:
+    clientid: ""
+    key: ""
+    secret: ""
+
+  btce:
+    key: ""
+    secret: ""
+
+  cexio:
+    clientid: '',
+    key: '',
+    secret: ''
+}
