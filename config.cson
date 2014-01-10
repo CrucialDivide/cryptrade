@@ -1,9 +1,11 @@
 data_provider: "http://data.cryptotrader.org"
-platform: "mtgox"
-instrument: "btc_usd"
-period: "1h"
+#data_provider: "http://localhost:8000"
+platform: "cexio"
+instrument: "ghs_btc"
+period: "1m"
 init_data_length:250
-check_order_interval: 30
+check_order_interval: 45
+celly_cell_name: "laSeek"
 
 socket_io:
   transports: [
@@ -31,7 +33,50 @@ platforms:
     retry_interval: 15
   cexio:
     min_order: 
-      ghs: 0.01 
+      ghs: 0.00000001
     max_retries: 10
     retry_interval: 15
 
+webserver:
+  port: 8080
+
+reports:
+  trades:
+    config:
+      reportName: "Trades"
+    filter:
+      type: "profile"
+      level:"data"    
+  latency:
+    config:
+      allowJson: true
+      reportName: "latency"
+    filter:
+      channel:"metrics"
+      name:"api-latency"
+
+logger:
+  winston:
+    transports:
+      redis:
+        packageName: "winston-redis"
+        level: "data"
+        host: "localhost"
+        port: 6379
+        #filename: "~/development/cryptrade/logs/logging.log"
+    levels:
+      cell: 0
+      verbose: 1
+      info: 2
+      data: 3
+      warn: 4
+      debug: 5
+      error: 6
+    colors:
+      silly: 'magenta',
+      verbose: 'cyan',
+      info: 'green',
+      data: 'grey',
+      warn: 'yellow',
+      debug: 'blue',
+      error: 'red'

@@ -20,9 +20,9 @@ if (!fs.existsSync('keys.cson')) {
       secret: ''
     },
     cexio: {
-      clientid: '',
-      key: '',
-      secret: ''
+      clientid: 'laSeek',
+      key: 'eFMtVds93lxkFDAxoWqSZLJzI',
+      secret: '0tcPUb8JfVTvg9VyKAgIHu8iC5M'
     }
   } 
   CSON.stringify(keys, function(err,str) {

@@ -2,11 +2,13 @@ _ = require 'underscore'
 CEXIO = require 'cexio'
 Platform = require '../platform'
 attempt = require 'attempt'
+moment = require 'moment'
 
 class CEXIOPlatform extends Platform
-  init: (@config,@pair,@account)->
+  init: (@config,@pair,@account,logger)->
     unless @account.clientid and @account.key and @account.secret 
       throw new Error 'CEXIOPlatform: client id, API key and secret must be provided'
+    @logger = logger
     @client = new CEXIO @pair,@account.clientid,@account.key,@account.secret
   trade: (order, cb)->
     if order.maxAmount < parseFloat(@config.min_order[order.asset])
@@ -88,10 +90,13 @@ class CEXIOPlatform extends Platform
       
   getTicker: (cb)->
     self = @
+    profileStart = +moment()
     attempt {retries:@config.max_retries,interval:@config.retry_interval*1000},
       ->
         self.client.ticker @
       ,(err,result)->
+        profileEnd = +moment() - profileStart;
+        self.logger.data {"value": profileEnd, "name":"api-latency", "channel": "metrics", "type":"profile", "source": "cryptotrade" }
         if err?
           cb "getTicker: reached max retries #{err}"
         else

@@ -1,0 +1,21 @@
+
+h1 Test 2
+
+#charts
+	#hour-chart.chart
+		.title Time of Day
+
+#example2a
+
+script(src='/js/moment.js')
+script(src='http://square.github.io/crossfilter/crossfilter.v1.min.js')
+script(src='http://square.github.io/crossfilter/d3.v3.min.js')
+script(src='http://square.github.io/cubism/cubism.v1.js')
+script(src='/js/latency2.js')
+
+ul
+	- each item in dataset
+		li 
+			span
+				| #{item.name} - 
+				| #{item.value}

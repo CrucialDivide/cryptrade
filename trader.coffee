@@ -1,5 +1,5 @@
 _ = require 'underscore'
-logger = require 'winston'
+#logger = require 'winston'
 vm = require 'vm'
 Fiber = require 'fibers'
 inspect = require('./utils').inspect
@@ -7,7 +7,8 @@ Instrument = require './instrument'
 talib = require './talib_sync'
 
 class Trader
-  constructor: (@name,@config,@account,@script)->
+  constructor: (@name,@config,@account,@script,logger)->
+    @logger = logger
     @sandbox = 
       _:_
       talib: talib
@@ -45,7 +46,7 @@ class Trader
     platformCls = require('./platforms/'+config.platform)
     platform = new platformCls()
     try
-      platform.init config.platforms[config.platform],config.instrument,@account
+      platform.init config.platforms[config.platform],config.instrument,@account,@logger
     catch e
       logger.error e.message
       process.exit 1
@@ -59,18 +60,18 @@ class Trader
   updateTicker: (platform,cb)->
     platform.getTicker (err,ticker)=>
       if err?
-        logger.error err
+        @logger.error err
       else
-        logger.verbose "updateTicker: #{inspect(ticker)}"
+        @logger.verbose "updateTicker: #{inspect(ticker)}"
         @ticker = ticker
         cb()
 
   updatePortfolio: (positions,platform,cb)->
     platform.getPositions positions,(err, result)=>
       if err?
-        logger.error err
+        @logger.error err
       else
-        logger.verbose "updatePortfolio: #{inspect(result)}"
+        @logger.verbose "updatePortfolio: #{inspect(result)}"
         for curr,amount of result
           @sandbox.portfolio.positions[curr] =
             amount:amount
@@ -100,7 +101,7 @@ class Trader
         break
     platform.trade order, (err,orderId)=>
       if err?
-        logger.info err
+        @logger.info err
         return
       self = @
       if orderId
@@ -119,23 +120,23 @@ class Trader
         switch order.type
           when 'buy'
             amount = order.amount or @sandbox.portfolio.positions[order.curr].amount / order.price
-            logger.info "BUY order ##{orderId} amount: #{amount} #{order.asset.toUpperCase()} @ #{order.price}"
+            @logger.info "BUY order ##{orderId} amount: #{amount} #{order.asset.toUpperCase()} @ #{order.price}"
             break
           when 'sell'
             amount = order.amount or @sandbox.portfolio.positions[order.asset].amount
-            logger.info "SELL order ##{orderId} amount: #{amount} #{order.asset.toUpperCase()} @ #{order.price}"
+            @logger.info "SELL order ##{orderId} amount: #{amount} #{order.asset.toUpperCase()} @ #{order.price}"
             break
         setTimeout =>
           platform.isOrderActive orderId,(err,active)=>
             if err?
-              logger.error err
+              @logger.error err
             if active
-              logger.info "Canceling order ##{orderId} as it was inactive for #{@config.check_order_interval} seconds."
+              @logger.info "Canceling order ##{orderId} as it was inactive for #{@config.check_order_interval} seconds."
               platform.cancelOrder orderId, (err)=>
                 if err?
-                  logger.error err
+                  @logger.error err
                 else
-                  logger.info "Creating new order.."
+                  @logger.info "Creating new order.."
                   @updateTicker platform,=>
                     @updatePortfolio [order.asset,order.curr], order.platform,=>
                       @trade order, cb
@@ -151,7 +152,7 @@ class Trader
       instrument.update bar
     @updatePortfolio instrument.pair,instrument.platform, =>
       balance = @calcPositions instrument.pair
-      logger.info "Trader initialized successfully. Starting balance: #{balance}"
+      @logger.info "Trader initialized successfully. Starting balance: #{balance}"
 
   handle: (bar)->
     instrument = @data[bar.instrument]
